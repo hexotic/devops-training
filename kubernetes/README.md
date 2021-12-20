@@ -12,10 +12,22 @@ export APP_COLOR='red'
 ```
 ## Network
 
+Different types:
+* `NodePort`
+* `ClusterIP`
+* `LoadBalancer`
+
 ## TP 8 snippets
 
 ```sh
 kubectl -n production apply -f .
 kubectl get po -n production -o wide
 kubectl describe svc -n production app-srv
+```
+## Other commands
+Service manifest from command line:
+```sh
+kubectl create deploy nginx --image nginx --port 80 --replicas=3
+kubectl expose deploy/nginx --name nginx-svc --type NodePort --port 80 --dry-run=client -o yaml
+kubectl describe svc nginx-svc # Note the target port
 ```
