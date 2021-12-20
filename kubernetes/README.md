@@ -2,7 +2,7 @@
 
 ## TP7 snippets
 ```
-ubectl create --dry-run=client configmap appcolor --from-literal=color=red -o yaml
+kubectl create configmap appcolor --from-literal=color=red -o yaml --dry-run=client
 ```
 
 ```sh
