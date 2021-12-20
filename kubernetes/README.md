@@ -32,3 +32,14 @@ kubectl expose deploy/nginx --name nginx-svc --type NodePort --port 80 --dry-run
 kubectl describe svc nginx-svc
 # Pay attention to the target port and endpoints
 ```
+
+## Storage
+### Volumes
+```yaml
+spec:
+  volumes:
+  - name: data-volume
+    hostPath:
+      path: /data
+      type: Directory
+```
