@@ -44,8 +44,11 @@ spec:
       type: Directory  # also DirectoryOrCreate
 ```
 
+## Volumes / Storage
+Pod -> PVC -> PV
+
 ## Persistent volumes
-(No imperative command for creation)
+* No imperative command for creation
 
 ```yaml
 apiVersion: v1
@@ -54,10 +57,28 @@ metadata:
   name: pv-vol1
 spec:
   accessModes:
-  - ReadWriteOnce    # also possible: ReadOnlyMany, ReadWriteMany
+    - ReadWriteOnce    # also possible: ReadOnlyMany, ReadWriteMany
   capacity:
     storage: 1Gi
   awsElasticBlockStore:
     volumeID: <volume-id>
     fsType: ext4
 ```
+### Persistent Volume Claim (PVC)
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: myclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+```
+
+Beware of:
+* accessModes
+* storageClassName
+* storage
