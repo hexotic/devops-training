@@ -4,10 +4,11 @@ metadata:
   name: app-srv
   namespace: production
 spec:
-  type: NodePort
-  ports:
-    - targetPort: 8080 # service port -> port
-      port: 8080       # service port
-      nodePort: 30008 # exposed port
   selector:
     app: web
+  type: NodePort
+  ports:
+  - targetPort: 8080 # service port -> port
+    port: 8080       # service port
+    nodePort: 30008 # exposed port
+
