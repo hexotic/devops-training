@@ -37,6 +37,11 @@ kubectl describe svc nginx-svc
 ## Volumes
 ```yaml
 spec:
+  containers:
+  - image: alpine
+    volumeMounts:
+    - mountPath: /opt
+      name: datat-volume
   volumes:
   - name: data-volume
     hostPath:
