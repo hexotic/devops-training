@@ -44,7 +44,8 @@ spec:
       type: Directory  # also DirectoryOrCreate
 ```
 
-#### Persistent volumes
+Persistent volumes
+--------
 (No imperative command for creation)
 
 ```yaml
