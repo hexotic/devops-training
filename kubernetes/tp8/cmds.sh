@@ -8,4 +8,4 @@ kubectl apply -f pod-red.yml -f pod-blue.yml
 kubectl apply -f service-nodeport-web.yml 
 
 # Check pods are associated
-kubectl -n production describe po
+kubectl -n production describe endpoints
