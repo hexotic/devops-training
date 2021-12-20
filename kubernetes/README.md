@@ -13,7 +13,9 @@ export APP_COLOR='red'
 ## Network
 
 ## TP 8 snippets
+
 ```sh
+kubectl -n production apply -f .
 kubectl get po -n production -o wide
 kubectl describe svc -n production app-srv
-``
+```
