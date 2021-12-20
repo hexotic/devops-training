@@ -11,6 +11,6 @@ spec:
     - name: APP_COLOR
       value: blue
     image: kodekloud/webapp-color
-    name: webapp2
+    name: webapp
     ports:
     - containerPort: 8080
