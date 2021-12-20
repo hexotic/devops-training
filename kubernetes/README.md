@@ -29,5 +29,6 @@ Service manifest from command line:
 ```sh
 kubectl create deploy nginx --image nginx --port 80 --replicas=3
 kubectl expose deploy/nginx --name nginx-svc --type NodePort --port 80 --dry-run=client -o yaml
-kubectl describe svc nginx-svc # Note the target port
+kubectl describe svc nginx-svc
+# Pay attention to the target port and endpoints
 ```
