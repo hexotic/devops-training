@@ -1,6 +1,6 @@
 # Kubernetes Notes
 
-## Tp7 snippets
+## TP7 snippets
 ```
 kubectl create configmap appcolor --from-literal=color=red
 kubectl get configmaps/appcolor -o yaml
@@ -11,3 +11,4 @@ kubectl exec -it webapp -- /bin/sh
 /opt # export
 export APP_COLOR='red'
 ```
+## Network
