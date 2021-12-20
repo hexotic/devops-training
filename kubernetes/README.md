@@ -10,7 +10,7 @@ kubectl exec -it webapp -- /bin/sh
 /opt # export
 export APP_COLOR='red'
 ```
-## Network
+# Network
 
 Different types:
 * `NodePort`
@@ -33,8 +33,8 @@ kubectl describe svc nginx-svc
 # Pay attention to the target port and endpoints
 ```
 
-## Storage
-### Volumes
+# Storage
+## Volumes
 ```yaml
 spec:
   volumes:
@@ -44,8 +44,7 @@ spec:
       type: Directory  # also DirectoryOrCreate
 ```
 
-Persistent volumes
---------
+## Persistent volumes
 (No imperative command for creation)
 
 ```yaml
@@ -55,7 +54,7 @@ metadata:
   name: pv-vol1
 spec:
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteOnce    # also possible: ReadOnlyMany, ReadWriteMany
   capacity:
     storage: 1Gi
   awsElasticBlockStore:
