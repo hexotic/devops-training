@@ -98,7 +98,7 @@ kubectl expose deployment/webapp-blue
 ```sh
 
 ## TP7 snippets
-```
+```sh
 kubectl create configmap appcolor --from-literal=color=red -o yaml --dry-run=client
 ```
 
@@ -107,6 +107,7 @@ kubectl exec -it webapp -- /bin/sh
 /opt # export
 export APP_COLOR='red'
 ```
+
 # Network
 
 Different types:
