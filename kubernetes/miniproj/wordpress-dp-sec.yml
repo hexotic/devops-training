@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-dp
+  labels:
+    role: wordpress-dp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      name: web
+      labels:
+        app: wordpress
+        type: pod
+    spec:
+      containers:
+      - env:
+        - name: WORDPRESS_DB_HOST
+          value: wordpress-mysql
+        - name: WORDPRESS_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: secret-wp-pwd
+              key: username
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secret-wp-pwd
+              key: password
+        - name: WORDPRESS_DB_NAME
+          value: wp-db
+        image: wordpress
+        name: wordpress-cont
+        ports:
+          - containerPort: 80
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: wp-data
+      volumes:
+      - name: wp-data
+        hostPath:
+          path: /data
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-front
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 80
+      port: 80
+      nodePort: 30000
+  selector:
+    app: wordpress
