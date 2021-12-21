@@ -81,7 +81,21 @@ minikube start --driver=none
 ## Good practices
 One container per pod to avoid building monolithic applications and to avoid having to update the whole pod when only one container needs updating.
 
+## TP6
+Deployment manifest
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-blue
+  labels:
+    role: webapp-blue
+```
 
+```sh
+kubectl apply -f <manifest>
+kubectl expose deployment/webapp-blue
+```sh
 
 ## TP7 snippets
 ```
