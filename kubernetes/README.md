@@ -1,4 +1,87 @@
 # Kubernetes Notes
+# Intro
+Kubernetes is an orchestrator for containers (like docker swarm).<br>
+Its main force is its ability to do **deployments**.
+
+## Installation
+* local developpement : `minikube`
+* production env : `kubeadm`
+
+### Minikube installation
+On AWS, it's best to use a **T2 large with 20 GB disk**.
+<details>
+<summary>
+<b>CentOS install</b>
+</summary>
+
+```sh
+# Minikube CentOS
+#!/bin/bash
+sudo yum -y update
+sudo curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker centos
+systemctl start docker
+sudo yum -y install epel-release
+sudo yum -y install libvirt qemu-kvm virt-install virt-top libguestfs-tools bridge-utils
+sudo yum install -y socat conntrack wget 
+sudo wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo chmod +x minikube-linux-amd64
+sudo mv minikube-linux-amd64 /usr/bin/minikube
+sudo curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+sudo chmod +x kubectl
+sudo mv kubectl  /usr/bin/
+sudo echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
+sudo systemctl enable docker.service
+```
+
+</details>
+<details>
+
+<summary>
+<b>Ubuntu install (20.04 LTS)</b>
+
+</summary>
+
+```sh
+# Minikube Ubuntu
+#!/bin/bash
+sudo apt-get -y update
+sudo curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker ubuntu
+systemctl start docker
+# Install virtualisation tools
+sudo apt install -y qemu qemu-kvm libvirt-daemon libvirt-clients bridge-utils virt-manager
+sudo apt-get install -y socat conntrack wget
+sudo wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo chmod +x minikube-linux-amd64
+sudo mv minikube-linux-amd64 /usr/bin/minikube
+sudo curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+sudo chmod +x kubectl
+sudo mv kubectl  /usr/bin/
+# Activation of port forwarding
+sudo echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
+sudo systemctl enable docker.service
+```
+</details>
+
+**Autocompletion**
+```sh
+# Add kubernetes auto completion
+echo 'source <(kubectl completion bash)' >> ${HOME}/.bashrc
+```
+
+## Cluster start-up
+```sh
+# /!\ Not to be done as root !
+minikube start --driver=none
+```
+
+## Good practices
+One container per pod to avoid building monolithic applications and to avoid having to update the whole pod when only one container needs updating.
+
+
 
 ## TP7 snippets
 ```
@@ -41,7 +124,7 @@ spec:
   - image: alpine
     volumeMounts:
     - mountPath: /opt
-      name: datat-volume
+      name: data-volume
   volumes:
   - name: data-volume
     hostPath:
