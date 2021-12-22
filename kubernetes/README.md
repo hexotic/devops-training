@@ -185,3 +185,38 @@ Beware of:
 * accessModes
 * storageClassName
 * storage
+
+## TP9 snippets
+```sh
+kubectl describe pod mysql
+...
+    Mounts:
+      /opt from data-opt (rw)
+      /var/lib/mysql from mysql-data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-l8pw2 (ro)
+...
+```
+
+# Network management : ingress
+Manages external access to the services in a cluster.
+
+* Need to install the ingress controler:
+`minikube addons enable ingress`
+
+### Creation command
+```sh
+kubectl create ingress simple-fanout-ex --rule="foo.bar.com/foo*=service1:4200"
+```
+
+```yaml
+metadata:
+  name: ex-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1  # fetch the path after domain name
+```
+
+# KubeConfig
+```
+kubectl config view   # same as cat ~/.kube/config
+kubectl config use-context minikube # --kubeconfig=<config>
+```
