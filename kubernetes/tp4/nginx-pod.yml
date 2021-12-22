@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simple-nginx-server
+  labels:
+    app: nginx
+    env: prod
+spec:
+  containers:
+  - name: nginx-chris
+    image: nginx
+    ports:
+      - containerPort: 80
