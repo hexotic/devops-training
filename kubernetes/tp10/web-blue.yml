@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-blue
+  labels:
+    role: webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webapp-blue
+  template:
+    metadata:
+      name: web
+      labels:
+        app: webapp-blue
+    spec:
+      containers:
+        - name: webapp
+          image: kodekloud/webapp-color
+          ports:
+            - containerPort: 8080
+          env:
+          - name: "APP_COLOR"
+            value: blue
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-blue-svc
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 8080
+      port: 8080
+      nodePort: 30000
+  selector:
+    app: webapp-blue
