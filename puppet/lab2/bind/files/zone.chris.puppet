@@ -1,0 +1,30 @@
+$TTL 86400
+$ORIGIN chris.puppet.
+@ IN SOA ns.chris.puppet. hostmaster.chris.puppet. (
+   2021122418   ; sn
+         3600   ; refresh (3 heures)
+          600   ; retry (10 minutes)
+      1814400   ; expiry (3 semaines)
+        10800 ) ; minimum (3 heures)
+        IN          NS      ns.chris.puppet.
+ns      IN          A       172.31.8.219
+chris.puppet.       A       172.31.2.195
+www     CNAME               chris.puppet.
+
+
+
+;----------
+;;; $TTL 86400
+;;; @ IN SOA root.chris.puppet. (
+;;; 2021122418 ;Serial
+;;; 3600 ;Refresh
+;;; 1800 ;Retry
+;;; 604800 ;Expire
+;;; 43200 ;Minimum TTL
+;;; )
+;;; ;Name Server Information
+;;; @ IN NS root.chris.puppet.
+;;; root IN A 172.31.8.219
+;;; ;IP address of Name Server
+;;; ;A - Record HostName To Ip Address
+;;; www IN A 172.31.2.195

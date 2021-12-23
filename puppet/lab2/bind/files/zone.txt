@@ -1,0 +1,5 @@
+zone "chris.puppet" IN {
+    type master;
+    file "zone.chris.puppet";
+    allow-update { none; };
+};
