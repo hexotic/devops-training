@@ -82,7 +82,7 @@ sudo systemctl enable --now puppetserver
 
 If everything went correctly:
 ```
-[centos@ip-172-31-2-195 ~]$ puppetserver -v 
+[centos@ip-172-31-2-195 ~]$ puppetserver -v
 puppetserver version: 7.5.0
 ```
 
@@ -260,3 +260,262 @@ class ssh {
    include ssh::install
 }
 ```
+
+# TP
+## TP docker install
+Use puppet forge to install:
+* docker
+* docker compose
+* add user to group docker
+
+https://forge.puppet.com/modules/puppetlabs/docker/readme
+
+```docker.pp```
+```ruby
+node 'puppetslave' {
+  # include 'docker' - modules are in the path
+
+  class { 'docker':
+    docker_users => ['centos'],
+    version => 'latest',
+  }
+
+  class { 'docker::compose':
+    ensure => present,
+    version => '1.29.2',
+  }
+}
+```
+
+* Install on server
+```puppet module install puppetlabs-docker --version 4.1.2```
+* Add manifest
+* on client: ```puppet agent --test```
+
+## TP nginx
+* Install nginx in a container on port 8090
+```nginx.pp```
+```ruby
+node 'puppetslave' {
+
+  docker::run { 'nginx8090':
+    image            => 'nginx',
+    extra_parameters => [ '--restart=always' ],
+    ports            => ['8090:80'],
+  }
+}
+```
+
+## TP docker compose
+```ruby
+
+file { '/tmp/docker-compose.yml':
+    ensure => file,
+    content => '
+version: "3.1"
+
+services:
+
+  wordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: exampleuser
+      WORDPRESS_DB_PASSWORD: examplepass
+      WORDPRESS_DB_NAME: exampledb
+    volumes:
+      - wordpress:/var/www/html
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db:/var/lib/mysql
+
+volumes:
+  wordpress:
+  db:',
+}
+
+docker_compose { 'wordpress':
+  compose_files => ['/tmp/docker-compose.yml'],
+  ensure  => present,
+}
+```
+
+## TP docker compose 2
+Using a module
+
+```sh
+mkdir -p wordpress/{files,manifests,templates}
+```
+
+```
+wordpress
+├── files
+│   └── docker-compose.yml
+├── manifests
+│   └── init.pp
+└── templates
+```
+
+```wordpress/files/docker-compose.yml```
+```yaml
+version: "3.1"
+
+services:
+
+  wordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: exampleuser
+      WORDPRESS_DB_PASSWORD: examplepass
+      WORDPRESS_DB_NAME: exampledb
+    volumes:
+      - wordpress:/var/www/html
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db:/var/lib/mysql
+
+volumes:
+  wordpress:
+  db:
+```
+
+```wordpress/manifests/init.pp```
+```ruby
+class wordpress {
+  file { '/tmp/docker-compose.yml':
+    source => 'puppet:///modules/wordpress/docker-compose.yml',
+    ensure => file,
+  }
+
+  docker_compose { 'wordpress':
+    compose_files => ['/tmp/docker-compose.yml'],
+    ensure        => present,
+  }
+}
+```
+
+```production/wordpress.pp```
+```ruby
+include wordpress
+```
+
+# Puppet DB
+Puppet board connects to Puppet DB (PostgreSQL 11)
+https://puppet.com/docs/puppetdb/7/overview.html
+
+```
+/etc/hosts 127.0.0.1 puppetdb
+```
+
+### 01_install_docker.pp
+```ruby
+class { 'docker':
+  docker_users => ['vagrant'],
+}
+
+class {'docker::compose':
+  ensure => present,
+}
+```
+```
+puppet apply 01_install_docker.pp
+```
+
+### 02_postgres.pp
+```ruby
+docker::run { 'postgres':
+  image            => 'postgres:11',
+  ports            => '5432:5432',
+  env              => ['POSTGRES_DB=puppetdb','POSTGRES_PASSWORD=puppetdb', 'POSTGRES_USER=puppetdb'],
+}
+```
+```
+puppet apply 02_postgres.pp
+```
+
+### 03_puppetdb.pp
+
+```ruby
+class { 'puppetdb::server':
+  listen_address    => '0.0.0.0',
+  open_listen_port  => 'true',
+  listen_port       => '8080',
+  database_host     => '127.0.0.1',
+  database_port     => '5432',
+  database_username => 'puppetdb',
+  database_password => 'puppetdb',
+  database_name     => 'puppetdb',
+  read_database_username => 'puppetdb',
+  read_database_password => 'puppetdb',
+}
+# Configure the Puppet master to use puppetdb
+class { 'puppetdb::master::config': }
+```
+```sh
+puppet module install puppetlabs-puppetdb --version 7.10.0
+puppet apply 03_puppetdb.pp
+systemctl status puppetdb
+```
+
+Puppet board: http://<ip>:8080
+
+------
+From there the install does not work
+### 04_puppetboard.pp
+```ruby
+class { 'puppetboard':
+  python_version  => '3.6',
+  enable_catalog  => false,
+}
+
+python::pip { 'flask':
+virtualenv => '/srv/puppetboard/virtenv-puppetboard',
+}
+
+class { 'apache': }
+class { 'apache::mod::wsgi': }
+
+class { 'puppetboard::apache::vhost':
+  vhost_name => 'puppet.home',
+  port       => 8888,
+}
+```
+
+```
+/etc/hosts
+127.0.0.1 puppetdb puppet.home
+```
+
+```
+puppet module uninstall --force puppetlabs-stdlib
+puppet module install puppetlabs-stdlib --version 7.0.0
+puppet module install puppet-puppetboard --version 8.0.0
+puppet module install puppetlabs-apache --version 7.0.0
+puppet module install puppet-python --version 6.2.1
+puppet apply /root/puppetdb/04_puppetboard.pp
+```
+
+Go to http://<ip master>:8888
