@@ -1,0 +1,13 @@
+all:
+  hosts:
+    worker01:
+      ansible_host: 172.31.86.191
+      ansible_user: ubuntu
+      ansible_password: Chris
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+    worker02:
+      ansible_host: 172.31.88.69
+      ansible_user: ubuntu
+      ansible_password: Chris
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
