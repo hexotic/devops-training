@@ -1,0 +1,23 @@
+---
+- name: "Install docker"
+  hosts: prod
+  become: true
+  vars:
+    ansible_sudo_pass: ubuntu
+
+  tasks:
+    - name: Download Install docker script
+      get_url:
+        url: "https://get.docker.com"
+        dest: /home/ubuntu/get-docker.sh
+
+    - name: run script to install docker
+      command: "sh /home/ubuntu/get-docker.sh"
+
+    - name: add ubuntu to group docker
+      user:
+        name: ubuntu
+        append: yes
+        groups:
+          - docker
+

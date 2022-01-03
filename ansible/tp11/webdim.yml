@@ -1,0 +1,37 @@
+---
+- 
+  name: "nginx installation"
+  become: yes
+  hosts: all
+
+  tasks:
+    - name: nginx install
+      apt:
+        name: nginx
+        state: present
+
+    - name: "clean folder"
+      file:
+        path: /var/www/html
+        state: absent
+    - name: "create folder"
+      file:
+        path: /var/www/html
+        state: directory
+
+    - name: "copy website"
+      copy:
+        src: /home/ubuntu/static-website-example/
+        dest: /var/www/html
+
+    - name: "generate index.html"
+      template:
+        src: index.html.j2
+        dest: /var/www/html/index.html
+
+    - name: "nginx enable"
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+

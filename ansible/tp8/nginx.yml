@@ -1,0 +1,38 @@
+---
+- 
+  name: "nginx installation"
+  hosts: worker01
+  become: yes
+  vars:
+    env: playbook   # debug example
+  tasks:
+    - name: "debug"
+      debug:
+        msg: "{{ env }}"
+
+    - name: "nginx install"
+      apt:
+        name: nginx
+        state: present
+
+    - name: "clean folder"
+      file:
+        path: /var/www/html
+        state: absent
+
+    - name: "create folder"
+      file:
+        path: /var/www/html
+        state: directory
+
+    - name: "create index.html"
+      copy:
+        content: Christophe
+        dest: /var/www/html/index.html
+
+    - name: "nginx enable"
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+

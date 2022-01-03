@@ -1,0 +1,59 @@
+---
+- name: attribute hostname on amster
+  hosts: ansible
+  become: true
+  vars:
+    hostname: AnsibleMaster
+  tasks:
+    - name: set host name
+      command: "sudo hostnamectl set-hostname {{ hostname }}"
+
+    - name: edit the hosts file
+      command: "echo '127.0.0.1 {{ hostname }}' >> /etc/hosts"
+
+
+- name: "Deploy an webapp in prod env"
+  hosts: prod
+  become: true
+  vars:
+    ansible_sudo_pass: admin
+
+  pre_tasks:
+    - name: set host name
+      command: "sudo hostnamectl set-hostname {{ hostname }}"
+
+    - name: edit the hosts file
+      command: "echo '127.0.0.1 {{ hostname }}' >> /etc/hosts"
+
+  tasks:
+    - name: "install nginx"
+      package:
+        name: nginx
+        state: present
+
+    - name: "start nginx"
+      service:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: copy website files
+      git:
+        repo: https://github.com/diranetafen/static-website-example.git
+        dest: /var/www/html/
+        force: yes
+
+    - name: "delete index.html if exist"
+      file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: "modifier un fact"
+      set_fact:
+         ansible_hostname: "{{ hostname }}"
+
+    - name: copy index file
+      template:
+        src: index.html.j2
+        dest: /var/www/html/index.html
+

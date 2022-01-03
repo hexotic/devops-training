@@ -1,0 +1,8 @@
+all:
+  children:
+    prod:
+      hosts:
+        worker01:
+          ansible_host: 172.31.86.191
+        worker02:
+          ansible_host: 172.31.88.69

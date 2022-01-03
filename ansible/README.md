@@ -7,10 +7,10 @@ Jump to:
 1. [Interest](#Introduction)<br>
 2. [Installation & configuration](#Installation)<br>
 3. [Ad hoc commands](#TP3-ad-hoc-commands-for-package-installation )<br>
-4. [Inventory](#Inventory)
-5. Playbook
-6. Templates (Jinja)
-7. include, import tags
+4. [Inventory](#Inventory-file)
+5. [Playbooks](#Playbooks)
+6. Templates, loop and condition (Jinja)
+7. include, import, tags
 8. security (sensitive variables)
 9. Tower
 
@@ -110,7 +110,7 @@ Example: <br>
 `ansible webserver -m yum -a "name=httpd state=latest"`
 `ansible <hosts> <module> <params>`
 
-# Inventory
+## Inventory
 
 `Host file - example with password (not secure)`
 ```sh
@@ -220,7 +220,7 @@ ansible -i hosts worker01 -b -m apt -a "name=nginx state=absent purge=yes autore
 ansible -i hosts worker02 -b -m apt -a "name=apache2 state=absent purge=yes autoremove=yes"
 ```
 
-# Inventory
+# Inventory file
 * format ini, yaml, json (`.yml` or `.yaml`)
 
 ## TP4 - yaml example
@@ -359,7 +359,285 @@ worker02 | SUCCESS => {
 
 </details>
 
-------
+# Playbooks
+In a manifest, it is possible to have several playbooks.
+
+[Playbook keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html)
+
+Best practice: one playbook for one big action.
+
+## Playbook pattern
+
+https://docs.ansible.com/ansible/latest/user_guide/intro_patterns.html
+
+
+`ansible-playbook`
+```yaml
+---
+# Example
+
+# Contains a list of playbooks, so with a -
+-
+  hosts: all
+  vars:
+    vars_file
+
+  pre_tasks:
+    -
+  tasks:
+    -
+  post_taks:
+    -
+
+-
+# enf of yaml
+...
+```
+
+## Host patterns
+
+<table>
+<tr><td>Description</td><td>Pattern(s)</td><td>Targets</td>
+</tr>
+<tr><td>All hosts</td><td>all (or *)</td><td></td></tr>
+<tr><td>One host</td><td>host1</td><td></td></tr>
+<tr><td>Multiple hosts</td><td>host1:host2 or host1,host2</td><td></td></tr>
+<tr><td>One group</td><td>webservers</td><td></td></tr>
+<tr><td>Multiple groups</td><td>webservers:dbservers</td><td>all hosts in webservers and dbservers</td></tr>
+<tr><td>Excluding groups</td><td>webservers:!france</td><td>all hosts in webservers except those in france</td></tr>
+<tr><td>Groups intersection</td><td>webservers:&staging</td><td>all hosts in webservers that are in staging</td></tr>
+</table>
+
+```yaml
+---
+- name: "first dep"
+  become: yes
+  hosts: prod
+  tasks:
+    - name: "clean folder"
+```
+
+```
+production
+staging
+
+group_vars/
+    group1.yml
+    group2.yml
+
+group_vars/
+    group1.yml
+    group2.yml
+```
+
+## lint
+```sh
+# install ansible-lint
+sudo pip3 install ansible-lint
+```
+## TP8 simple playbook
+Simple playbook for nginx installation
+[tp8 playbook](./tp8/nginx.yml)
+
+`ansible-playbook -i prod.yml nginx.yml`
+
+# Templating with Jinja
+```yaml
+tasks:
+  - name: Ansible Jinja2
+    debug:
+      masg: >
+            --== Ansible Jinja2 ex ==--
+
+            {# comment -#}
+            {% if ansible_hostname == "worker01" -%}
+               It's worker 01
+            {% endif %}
+```
+
+## TP9 TP10 nginx and templating
+[tp9 playbook](./tp9/nginx_tmp.yml)
+<br>
+[tp9 sh template](./tp9/install_nginx.sh.j2)
+
+`ansible-playbook -i prod.yml ngix_tpl.yml`
+
+## TP11 templating and hostname
+
+# Loop
+```yaml
+---
+- hosts: all
+  tasks:
+    - name: create new users
+      user:
+        name: '{{ item }}'
+        state: present
+
+      loop:
+        - john
+        - mike
+        - andrew
+```
+
+## with_items
+```yaml
+  - name:
+    with_items:
+      - client1
+      - client2
+    when: ansible_distribution == 'Centos'
+```
+
+## with_dict
+```yaml
+tasks:
+  - name: creat users
+    user:
+      name: "{{ item.key }}"
+      comment: "{{ item.velue.name }}"
+    with_dict:
+      bob:
+        name: Bob Sinclar
+      david:
+        name: David Guetta
+```
+
+## TP12 loop and condition
+[TP12 playbook](tp12.yml)
+
+# Include, import and tags
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_includes.html
+
+* **include_tasks**: dynamic
+* **import_tasks**: static
+* **import_playbook**: static
+
+`static`: applied at playbook load<br>
+`dynamic`: applied during playbook execution
+
+```yaml
+---
+- name: "install nginx"
+  become: yes
+  tasks:
+    include_tasks: /home/ubuntu/nginx_template.yml
+```
+
+`nginx_template.yml`
+```yaml
+---
+- name: "install nginx"
+  package:
+    name: nginx
+    state: present
+
+- name: "enable nginx"
+  service:
+    name: nginx
+    enabled: yes
+    state: started
+```
+
+## Tags
+Tag playbook or task
+Special tags:
+* always
+* never
+
+```sh
+ansible-playbook -i hosts.yml webapp.yml --tags nginx
+ansible-playbook -i hosts.yml webapp.yml --skip-tags play1
+```
+
+## TP13 include_tasks
+[TP13 main.yml](tp13.yml)<br>
+[TP13 install.yml ](tp13.yml)
+
+NOTE: could use `set_facts` in task to set variable
+
+NOTE 2: `import_tasks` does not work with loop (in this case)
+
+-------
+`main.yml`
+```yaml
+...
+  tasks:
+    - name: install
+      include_tasks: install.yml
+      when: ansible_distribution == "Ubuntu"
+      loop:
+        - git
+        - nginx
+```
+`install.yml`
+```yaml
+---
+  - name: pkg install
+    apt:
+      name: "{{ item }}"
+      state: present
+```
+
+## Docker module
+The module `docker_container` requires pip and module install on remote machine
+```yaml
+    - name: install pip3
+      apt:
+        name: python3-pip
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: install docker.py module
+      pip:
+        name: docker-py
+        state: present
+```
+
+# SSH
+* Connection with private key in command line or in yaml
+```yaml
+  vars:
+    ansible_ssh_private_key_file: /home/ubuntu/chris.pem
+```
+## Ansible vault
+
+## Ansible config file
+`.ansible_config` or `$ANSIBLE_CONFIG`
+* init format
+
+```sh
+ansible --version # show the config file
+```
+
+## TP15 use ansible vault
+```yaml
+ansible_password: "{{ ansible_vault_password }}"
+```
+
+`secrets.yml`
+```yaml
+ansible_vault_password: ubuntu
+```
+`ansible-vault encrypt secrets.yml`
+
+playbook.yml (excerpt)
+```yaml
+var_files:
+  - secrets.yml 
+```
+`ansible_cfg`
+```
+[privilege_escalation]
+# ask password when sudo
+become_ask_pass = true
+
+[defaults]
+ask_vault_pass = true
+```
+
+`ansible-playbook -i hosts.yaml test.yml`
+
 
 # Commands recap
 
@@ -386,4 +664,54 @@ ansible -i hosts.yml all -m debug -a "msg={{ env }}"
 ansible-inventory -i hosts.yml --host worker01 # json format
 ansible-inventory -i hosts.yml --list -y  # yaml format
 
+# Lint
+ansible-lint nginx.yml
+
+# Playbook
+ansible-playbook -i prod.yml nginx.yml
+ansible-playbook -i prod.yml nginx.yml --private-key key.pem
+
+# Tags
+ansible-playbook -i hosts.yml webapp.yml --tags nginx
+ansible-playbook -i hosts.yml webapp.yml --skip-tags play1
+
+```
+
+# Playbook excerpts
+```yaml
+  tasks:
+ 
+    - name: copy website files
+      git:
+        repo: https://github.com/hexotic/static-website-example.git
+        dest: /var/www/html/
+        force: yes
+
+    - name: "create index.html"
+      copy:
+        src: /home/ubuntu/static-website-example/
+        dest: /var/www/html
+
+    - name: "modify un fact"
+      set_fact:
+        ansible_hostname: "{{ hostname }}"
+        env: foo
+  
+    - name: get docker script
+      command: 'curl -fsSL https://get.docker.com -o get-docker.sh'
+
+    - name: Download Install docker script
+      get_url:
+        url: "https://get.docker.com"
+        dest: /home/ubuntu/get-docker.sh
+
+    - name: run script to install docker
+      command: "sh /home/ubuntu/get-docker.sh"
+
+    - name: add ubuntu to group docker
+      user:
+        name: ubuntu
+        append: yes
+        groups:
+          - docker
 ```

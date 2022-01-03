@@ -1,0 +1,13 @@
+#!/bin/sh
+
+WEB_SERVER={{ web_srv }}
+
+{% if ansible_distribution == 'Ubuntu' %}
+apt-get install -y $WEB_SERVER
+{% elif ansible_distribution == 'Centos' %}
+yum install -y $WEB_SERVER
+{% else %}
+{% endif %}
+systemctl enable $WEB_SERVER
+systemctl start $WEB_SERVER
+

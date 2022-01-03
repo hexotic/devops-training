@@ -1,0 +1,6 @@
+---
+  - name: pkg install
+    apt:
+      name: "{{ item }}"
+      state: present
+

@@ -1,0 +1,33 @@
+---
+- 
+  name: "package installation"
+  become: yes
+  hosts: worker01
+
+  tasks:
+    - name: install
+      include_tasks: install.yml
+      when: ansible_distribution == "Ubuntu"
+      loop:
+        - git
+        - nginx
+
+    - name: "clean folder"
+      file:
+        path: /var/www/html
+        state: absent
+    - name: "create folder"
+      file:
+        path: /var/www/html
+        state: directory
+    - name: "create index.html"
+      copy:
+        content: Christophe TP13
+        dest: /var/www/html/index.html
+
+    - name: "nginx enable"
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+

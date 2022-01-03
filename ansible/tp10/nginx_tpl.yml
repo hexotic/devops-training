@@ -1,0 +1,50 @@
+---
+-
+  name: "nginx installation"
+  become: yes
+  hosts: worker01
+  vars:
+    web_srv: nginx
+
+  tasks:
+    - name: "generate install script"
+      template:
+        src: install_nginx.sh.j2
+        dest: /home/{{ ansible_user }}/install_nginx.sh
+
+    - name: nginx dbg
+      debug:
+        msg: "{{ ansible_distribution }}"
+
+    - name: nginx install
+      command: sh /home/{{ ansible_user }}/install_nginx.sh
+
+    - name: "clean folder"
+      file:
+        path: /var/www/html
+        state: absent
+    - name: "create folder"
+      file:
+        path: /var/www/html
+        state: directory
+
+    - name: "create index.html"
+      copy:
+        content: "Christophe TP9"
+        dest: /var/www/html/index.html
+-
+  name: "nginx deinstallation"
+  become: yes
+  hosts: worker02
+  vars:
+    web_srv: nginx
+
+  tasks:
+    - name: "generate deinstall script"
+      template:
+        src: deinstall_nginx.sh.j2
+        dest: /home/{{ ansible_user }}/deinstall_nginx.sh
+
+    - name: nginx deinstall
+      command: sh /home/{{ ansible_user }}/deinstall_nginx.sh
+

@@ -1,0 +1,14 @@
+#!/bin/sh
+  
+WEB_SERVER={{ web_srv }}
+
+systemctl stop $WEB_SERVER
+systemctl disable $WEB_SERVER
+
+{% if ansible_distribution == 'Ubuntu' %}
+apt-get autoremove -y $WEB_SERVER
+{% elif ansible_distribution == 'Centos' %}
+yum remove -y $WEB_SERVER
+{% else %}
+{% endif %}
+
