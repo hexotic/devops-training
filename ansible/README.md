@@ -623,7 +623,7 @@ ansible_vault_password: ubuntu
 
 playbook.yml (excerpt)
 ```yaml
-var_files:
+vars_files:
   - secrets.yml 
 ```
 `ansible_cfg`
@@ -636,7 +636,7 @@ become_ask_pass = true
 ask_vault_pass = true
 ```
 
-`ansible-playbook -i hosts.yaml test.yml`
+`ansible-playbook -i hosts.yaml test.yml # --ask-vault-password`
 
 
 # Commands recap
