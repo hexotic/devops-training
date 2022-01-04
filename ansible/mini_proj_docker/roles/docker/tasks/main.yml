@@ -1,0 +1,34 @@
+# Tasks for the role
+
+# ----- Install docker 
+  - name: "generate install script"
+    template:
+      src: templates/docker_install.sh.j2
+      dest: /home/{{ ansible_user }}/docker_install.sh
+
+  - name: "Exec docker install"
+    command: 'sh /home/{{ ansible_user }}/docker_install.sh'
+
+  - name: "Enable & start docker"
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: "Add user to group docker"
+    user:
+      name: "{{ ansible_user }}"
+      append: yes
+      groups:
+        - docker
+
+# ----- Install pkg for docker container module
+  - name: install pip3
+    apt:
+      name: python3-pip
+      state: present
+
+  - name: install docker.py module
+    pip:
+      name: docker-py
+      state: present
