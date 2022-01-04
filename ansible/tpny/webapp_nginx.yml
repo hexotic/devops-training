@@ -1,0 +1,34 @@
+---
+- name: "Change hostname"
+  import_playbook: hostname.yml
+
+- name: "Install docker"
+  import_playbook: docker.yml
+
+- name: "Website in Docker"
+  become: yes
+  hosts: prod
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: "Create directory"
+      file:
+        path: "/home/ubuntu/static-web"
+        state: directory
+
+    - name: "Git clone"
+      git:
+        repo: "https://github.com/diranetafen/static-website-example.git"
+        dest: "/home/ubuntu/static-web"
+        force: yes
+
+    - name: "Launch nigx container"
+      docker_container:
+        name: webapp
+        image: nginx
+        ports:
+          - "80:80"
+        volumes:
+                - "/home/ubuntu/static-web:/usr/share/nginx/html"
+

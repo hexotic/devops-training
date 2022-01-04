@@ -1,0 +1,37 @@
+---
+- name: "Install docker"
+  hosts: prod
+  become: true
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Download Install docker script
+      get_url:
+        url: "https://get.docker.com"
+        dest: /home/ubuntu/get-docker.sh
+      when: ansible_docker0 is undefined
+
+    - name: run script to install docker
+      command: "sh /home/ubuntu/get-docker.sh"
+      when: ansible_docker0 is undefined
+
+    - name: give the privilege to ubuntu
+      user:
+        name: ubuntu
+        append: yes
+        groups:
+          - docker
+
+    - name: install pip3
+      apt:
+        name: python3-pip
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: install docker.py module
+      pip:
+        name: docker-py
+        state: present
+

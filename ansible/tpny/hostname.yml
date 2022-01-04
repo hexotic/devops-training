@@ -1,0 +1,11 @@
+---
+- name: "Change hostname"
+  hosts: all
+  become: yes
+
+  vars_files: secrets.yml
+
+  tasks:
+    - name: "Change hostname"
+      # hostname is defined in the inventory (hosts.yml) 
+      command: "hostnamectl set-hostname {{ hostname }}"

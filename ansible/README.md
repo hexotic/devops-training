@@ -626,17 +626,131 @@ playbook.yml (excerpt)
 vars_files:
   - secrets.yml 
 ```
-`ansible_cfg`
+`.ansible.cfg`
 ```
 [privilege_escalation]
 # ask password when sudo
 become_ask_pass = true
+become = yes
 
 [defaults]
 ask_vault_pass = true
 ```
 
 `ansible-playbook -i hosts.yaml test.yml # --ask-vault-password`
+
+# Other notions
+## Rolling update - keyword serial (playbook)
+```yaml
+  serial: 3
+
+  serial: "30%"
+
+  serial:
+    - 1
+    - 5
+    - 10
+
+  serial:
+    - "10%"
+    - "20%"
+
+  serial:
+    - 1
+    - 5
+    - "20%"
+```
+
+## max_fail_percentage
+```yaml
+  max_fail_percentage: 30
+  serial: 10
+```
+
+## Interrupt execution
+
+## Delegate
+Execute task on a host.
+```
+delegate_to: 127.0.0.1
+```
+
+## run_once
+
+## ignore_errors and ignore_unreachable
+
+
+## register
+Save shell output in a variable
+```yaml
+  tasks:
+    - name: find files
+      shell: "find *.txt"
+      args:
+        chdir: "/home/ubuntu"
+      register: find_output
+
+    - debug:
+        var: find_output
+```
+
+## Handler: notify and handlers
+`notify` + `handlers
+```yaml
+notify:
+- restart apache
+
+handlers:
+  - name: restart apache
+    service:
+      name: httpd
+      state: restarted
+```
+
+## Role
+```sh
+roles
+  mongodb
+    defaults  # variables definitions
+      main.yml
+    files     # files to be copied on target
+    handlers  # handler tasks
+      main.yml
+    meta      # info related to role
+      main.yml
+    README.md
+    tasks     # tasks
+      main.yml
+    templates
+    tests     # how to for the role
+      inventory
+      test.yml
+    vars      # override variables
+      main.yml
+```
+
+## Galaxy Ansible
+```yaml
+  hosts: all
+  roles:
+    - odoo
+```
+
+### Galaxy
+`requirements.yml`
+```yaml
+- src: sadofrazer.odoo_role
+```
+`ansible-galaxy install -r requirements.yml`
+
+-----
+```yaml
+roles:
+  - sadofrazer.odoo_role
+```
+-----
+### Role creation
+`ansible-galaxy role init docker_role`
 
 
 # Commands recap
@@ -675,6 +789,9 @@ ansible-playbook -i prod.yml nginx.yml --private-key key.pem
 ansible-playbook -i hosts.yml webapp.yml --tags nginx
 ansible-playbook -i hosts.yml webapp.yml --skip-tags play1
 
+# Role
+ansible-galaxy role init docker_role
+ansible-galaxy install -r requirements.yml
 ```
 
 # Playbook excerpts
@@ -704,9 +821,11 @@ ansible-playbook -i hosts.yml webapp.yml --skip-tags play1
       get_url:
         url: "https://get.docker.com"
         dest: /home/ubuntu/get-docker.sh
+      when: ansible_docker0 is undefined
 
     - name: run script to install docker
       command: "sh /home/ubuntu/get-docker.sh"
+      when: ansible_docker0 is undefined
 
     - name: add ubuntu to group docker
       user:
@@ -714,4 +833,7 @@ ansible-playbook -i hosts.yml webapp.yml --skip-tags play1
         append: yes
         groups:
           - docker
+
+    - name: "set hostname"
+        name: name="{{ hostname }}"
 ```
