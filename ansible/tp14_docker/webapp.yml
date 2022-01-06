@@ -1,0 +1,30 @@
+---
+- name: "Website in Docker"
+  become: yes
+  hosts: all
+
+  tasks:
+    - name: "Create directory"
+      file:
+        path: "/home/ubuntu/static-web"
+        state: directory
+
+    - name: "Git clone"
+      git:
+        repo: "https://github.com/diranetafen/static-website-example.git"
+        dest: "/home/ubuntu/static-web"
+        force: yes
+
+    - name: "Generate index.html"
+      template:
+        src: index.html.j2
+        dest: /home/ubuntu/static-web/index.html
+        
+    - name: "Launch httpd container"
+      docker_container: 
+        name: webapp
+        image: httpd
+        ports:
+          - "80:80"
+        volumes:
+          - "/home/ubuntu/static-web:/usr/local/apache2/htdocs"
