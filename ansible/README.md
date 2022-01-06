@@ -752,6 +752,58 @@ roles:
 ### Role creation
 `ansible-galaxy role init docker_role`
 
+# Ansible Tower
+It's a CI with a web interface.
+* projects
+* inventory
+* credentials
+* jobs
+
+## Installation
+From the github repo, install script:<br>
+https://github.com/sadofrazer/tower
+<br>
+Start an EC2 (t2 medium) with the install script
+
+* Modif role
+* Create project: deploy_wordpress_project
+Choose SCM: git
+URL git
+Branch : main / master
+Select: **update revision on launch**
+* Create inventory: name: inventory_wordpress
+  * create a source: inventory_src_wordpress
+    * source: from project
+    * select an inventory file
+
+* Credentials -> create
+  * name: wordpress_vault
+    * select vault
+  * name: hosts_prod_id
+    * select type machine
+      * user: ubuntu
+      * password: *****
+      * add ssh private key
+
+* Create templates
+  * simple job model
+  * name **deploy_wordpress_job**
+  * job type -> Run
+  * choose inventory
+  * choose playbook: **wordpress.yml**
+  * id information: hosts_prod_id, wordpress_vault
+  * activate **privilege escalation**
+
+Go to modle and launch job **deploy_wordpress_job**
+TP17 - tower
+
+## Webhook
+Templates -> choose deploy_wordpress_job
+Select Enable webhook
+* webhook service -> github
+
+* copy webhook url & token for github
+Select JSON
 
 # Commands recap
 
